@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { ApiError } from '../utils/error';
-import { logger } from '../utils/logger';
-import { getRequestId } from './requestId.middleware';
+import { ApiError } from '../utils/error.js';
+import { logger } from '../utils/logger.js';
+import { getRequestId, REQUEST_ID_HEADER } from './requestId.middleware.js';
 
 export function errorMiddleware(
   err: Error,

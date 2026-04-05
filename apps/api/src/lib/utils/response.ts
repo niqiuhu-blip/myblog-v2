@@ -1,26 +1,26 @@
-import { Response } from 'express';
 import type { ApiResponse as SharedApiResponse, PaginatedResponse } from '@myblog/shared';
 
-export function apiResponse<T>(
-  res: Response,
+export function successResponse<T>(
   data: T,
   requestId: string
-): Response<SharedApiResponse<T>> {
-  return res.json({
+): SharedApiResponse<T> {
+  return {
     success: true,
     data,
     requestId
-  });
+  };
+}
+
+export function apiResponse<T>(
+  data: T,
+  requestId: string
+): SharedApiResponse<T> {
+  return successResponse(data, requestId);
 }
 
 export function paginatedResponse<T>(
-  res: Response,
   data: PaginatedResponse<T>,
   requestId: string
-): Response<SharedApiResponse<PaginatedResponse<T>>> {
-  return res.json({
-    success: true,
-    data,
-    requestId
-  });
+): SharedApiResponse<PaginatedResponse<T>> {
+  return successResponse(data, requestId);
 }

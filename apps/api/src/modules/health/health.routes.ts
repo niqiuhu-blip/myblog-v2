@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { getRequestId } from '../../lib/middleware/requestId.middleware';
-import { apiResponse } from '../../lib/utils/response';
+import { getRequestId } from '../../lib/middleware/requestId.middleware.js';
+import { successResponse } from '../../lib/utils/response.js';
 
 const router = Router();
 
@@ -26,7 +26,7 @@ router.get('/ready', async (req: Request, res: Response) => {
     });
   }
 
-  return apiResponse(res, { status: 'ready' }, requestId);
+  return res.json(successResponse({ status: 'ready' }, requestId));
 });
 
 export default router;

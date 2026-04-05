@@ -186,6 +186,9 @@ model Media {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
+  // 关系
+  coverPosts   Post[]      @relation("PostCover")
+
   @@index([hash])
   @@index([uploaderId, createdAt])
   @@index([status, createdAt])

@@ -5,10 +5,14 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 
-import { requestIdMiddleware, REQUEST_ID_HEADER } from './lib/middleware/requestId.middleware';
-import { errorMiddleware } from './lib/middleware/error.middleware';
-import { logger } from './lib/utils/logger';
-import healthRoutes from './modules/health/health.routes';
+import { requestIdMiddleware, REQUEST_ID_HEADER } from './lib/middleware/requestId.middleware.js';
+import { errorMiddleware } from './lib/middleware/error.middleware.js';
+import { logger } from './lib/utils/logger.js';
+import healthRoutes from './modules/health/health.routes.js';
+import { authRoutes } from './modules/auth/index.js';
+import { categoriesRoutes } from './modules/categories/index.js';
+import { tagsRoutes } from './modules/tags/index.js';
+import { postsRoutes } from './modules/posts/index.js';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -55,6 +59,10 @@ app.use(morgan(':date[iso] :requestId :method :url :status :response-time ms - :
 
 // Routes
 app.use('/api', healthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/tags', tagsRoutes);
+app.use('/api/posts', postsRoutes);
 
 // Health check (no logging)
 app.get('/healthz', (_req, res) => {

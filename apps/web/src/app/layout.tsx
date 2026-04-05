@@ -1,10 +1,7 @@
-import type { Metadata } from 'next';
-import './globals.css';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'My Blog',
-  description: 'A modern blog system',
-};
+import './globals.css';
+import { AuthProvider } from '../lib/auth-context';
 
 export default function RootLayout({
   children,
@@ -14,7 +11,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen bg-gray-50 text-gray-900">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

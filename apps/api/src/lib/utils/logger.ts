@@ -55,5 +55,21 @@ export const logger = {
       timestamp: new Date().toISOString(),
       ...entry
     });
+  },
+
+  warn(entry: Omit<LogEntry, 'timestamp'>): void {
+    writeLog(errorLogStream, {
+      timestamp: new Date().toISOString(),
+      level: 'warn',
+      ...entry
+    });
+  },
+
+  info(entry: Omit<LogEntry, 'timestamp'>): void {
+    writeLog(accessLogStream, {
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      ...entry
+    });
   }
 };
