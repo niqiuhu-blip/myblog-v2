@@ -36,8 +36,18 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Data
-data/
+data/*
 !data/.gitkeep
+!data/media/.gitkeep
+!data/media-tmp/.gitkeep
+!data/backups/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+!logs/nginx/.gitkeep
+!logs/api/.gitkeep
+!logs/web/.gitkeep
 
 # Testing
 coverage/

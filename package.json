@@ -1,0 +1,37 @@
+{
+  "name": "myblog-v2",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Modern blog system",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter \"@myblog/*\" dev",
+    "dev:api": "pnpm --filter @myblog/api dev",
+    "dev:web": "pnpm --filter @myblog/web dev",
+    "build": "pnpm --filter \"@myblog/*\" build",
+    "lint": "pnpm --filter \"@myblog/*\" lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "db:generate": "prisma generate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "prettier": "^3.3",
+    "prisma": "^5.20",
+    "typescript": "^5.6"
+  },
+  "pnpm": {
+    "workspace": [
+      "apps/*",
+      "packages/*"
+    ]
+  }
+}

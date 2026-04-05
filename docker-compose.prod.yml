@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: myblog-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-myblog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-myblog}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-myblog}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - myblog-network
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: myblog-api
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-myblog}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-myblog}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./data/media:/data/media
+      - ./data/media-tmp:/data/media-tmp
+      - ./logs/api:/app/logs/api
+    restart: unless-stopped
+    networks:
+      - myblog-network
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    container_name: myblog-web
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: /api
+    depends_on:
+      - api
+    volumes:
+      - ./logs/web:/app/logs/web
+    restart: unless-stopped
+    networks:
+      - myblog-network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    container_name: myblog-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+      - web
+    volumes:
+      - ./data/media:/var/www/media:ro
+      - ./logs/nginx:/var/log/nginx
+    restart: unless-stopped
+    networks:
+      - myblog-network
+
+networks:
+  myblog-network:
+    driver: bridge

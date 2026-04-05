@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== 用户表 ==========
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  email         String    @unique
+  password      String    // bcrypt 哈希，rounds=12
+  role          UserRole  @default(ADMIN)
+  status        UserStatus @default(ACTIVE)
+  lastLoginAt   DateTime?
+  loginAttempts Int       @default(0)
+  lockedUntil   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  posts     Post[]
+  comments  Comment[]
+  media     Media[]
+}
+
+enum UserRole {
+  ADMIN
+  AUTHOR
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+// ========== 文章表 ==========
+model Post {
+  id             String          @id @default(cuid())
+  title          String
+  slug           String          @unique
+  content        String          // Markdown 内容
+  excerpt        String?
+  status         PostStatus      @default(DRAFT)
+  isPinned       Boolean         @default(false)
+  viewCount      Int             @default(0)
+  readingTime    Int?            // 阅读时长（分钟，中文约 300 字/分钟）
+  coverImageId   String?
+  coverImage     Media?          @relation("PostCover", fields: [coverImageId], references: [id])
+  seoTitle       String?
+  seoDescription String?
+  scheduledAt    DateTime?
+  searchVector   Unsupported("tsvector")?
+
+  publishedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  authorId      String
+  author        User            @relation(fields: [authorId], references: [id])
+
+  categories  CategoryOnPost[]
+  tags        TagOnPost[]
+  comments    Comment[]
+
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@index([authorId, createdAt])
+  @@index([searchVector], type: Gin)
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+// ========== 分类表 ==========
+model Category {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  slug        String          @unique
+  description String?
+  sortOrder   Int             @default(0)
+  parentId    String?
+  parent      Category?       @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[]      @relation("CategoryHierarchy")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  posts CategoryOnPost[]
+
+  @@index([slug])
+}
+
+model CategoryOnPost {
+  postId     String
+  categoryId String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+}
+
+// ========== 标签表 ==========
+model Tag {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  slug      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  posts TagOnPost[]
+
+  @@index([slug])
+}
+
+model TagOnPost {
+  postId String
+  tagId  String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+// ========== 评论表（软删除）==========
+model Comment {
+  id        String        @id @default(cuid())
+  content   String
+  postId    String
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?         @relation(fields: [authorId], references: [id])
+  guestName String?       // 访客评论
+  guestEmail String?
+  parentId  String?
+  parent    Comment?      @relation("CommentThread", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentThread")
+  path      String        // 如 "001.003"，用于排序
+  status    CommentStatus @default(PENDING)
+  // 风控字段
+  ipHash    String?       // SHA-256(IP)
+  userAgent String?
+  // 软删除
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([postId])
+  @@index([parentId])
+  @@index([status, createdAt])
+}
+
+enum CommentStatus {
+  PENDING     // 待审核（默认）
+  APPROVED    // 已通过
+  REJECTED    // 已拒绝
+  SPAM        // 垃圾评论
+}
+
+// ========== 媒体表 ==========
+model Media {
+  id           String      @id @default(cuid())
+  filename     String      // UUID 文件名
+  originalName String      // 原始文件名
+  storageKey   String      // 存储路径/key（如 "2024/04/abc123.webp"）
+  hash         String?     // SHA-256 hash（去重用）
+  altText      String?     // 图片 alt 文本
+  mimeType     String
+  size         Int         // 字节
+  width        Int?
+  height       Int?
+  url          String
+  thumbnailUrl String?
+  mediumUrl    String?
+  storageType  StorageType @default(LOCAL)
+  uploaderId   String
+  uploader     User        @relation(fields: [uploaderId], references: [id])
+  // 异步处理状态
+  status       MediaStatus @default(PENDING)
+  errorMessage String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([hash])
+  @@index([uploaderId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum StorageType {
+  LOCAL
+  ALIYUN_OSS
+  AWS_S3
+}
+
+enum MediaStatus {
+  PENDING    // 等待处理
+  PROCESSING // 处理中
+  READY      // 就绪
+  FAILED     // 失败
+}
