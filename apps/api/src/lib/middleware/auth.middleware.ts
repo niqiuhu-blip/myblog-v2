@@ -15,7 +15,7 @@ export const authenticate = (
     const token = req.cookies?.access_token;
 
     if (!token) {
-      throw new ApiError(401, '未登录');
+      throw new ApiError('未登录', 401);
     }
 
     const decoded = jwt.verify(
@@ -27,10 +27,10 @@ export const authenticate = (
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      throw new ApiError(401, '无效的 token');
+      throw new ApiError('无效的 token', 401);
     }
     if (error instanceof jwt.TokenExpiredError) {
-      throw new ApiError(401, 'token 已过期');
+      throw new ApiError('token 已过期', 401);
     }
     throw error;
   }
@@ -42,11 +42,11 @@ export const requireRole = (...roles: string[]) => {
     const userRole = req.user?.role;
 
     if (!userRole) {
-      throw new ApiError(401, '未登录');
+      throw new ApiError('未登录', 401);
     }
 
     if (!roles.includes(userRole)) {
-      throw new ApiError(403, '权限不足');
+      throw new ApiError('权限不足', 403);
     }
 
     next();
@@ -82,7 +82,7 @@ export const validateCsrf = (
 
   if (!stored || Date.now() > stored.expires) {
     csrfTokens.delete(sessionId);
-    throw new ApiError(403, 'CSRF token 已过期');
+    throw new ApiError('CSRF token 已过期', 403);
   }
 
   const token = req.headers['x-csrf-token'] || req.body?._csrf;
@@ -93,7 +93,7 @@ export const validateCsrf = (
       ip: req.ip,
       path: req.path
     });
-    throw new ApiError(403, 'CSRF token 无效');
+    throw new ApiError('CSRF token 无效', 403);
   }
 
   next();

@@ -28,8 +28,10 @@
   },
   "devDependencies": {
     "@types/node": "^22",
+    "bcrypt": "^5.1.1",
     "prettier": "^3.3",
-    "prisma": "^5.20",
+    "prisma": "5.20.0",
+    "tsx": "^4.19",
     "typescript": "^5.6"
   },
   "pnpm": {

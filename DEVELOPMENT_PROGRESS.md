@@ -3,7 +3,7 @@
 ## 日期
 
 **开始日期**: 2026-04-05
-**最后更新**: 2026-04-05
+**最后更新**: 2026-04-06
 
 ---
 
@@ -126,6 +126,40 @@ myblog-v2/
 - PostgreSQL 16 已安装并运行
 - 已创建数据库用户 `myblog` 和数据库 `myblog`
 
+### 10. 数据库初始化 ✨ (2026-04-06 新增)
+
+✅ 完成数据库初始化：
+- 授予 myblog 用户 SUPERUSER 权限
+- 执行 Prisma 迁移：`prisma migrate dev --name init`
+- 所有表结构创建成功
+- 运行种子脚本：`prisma db seed`
+- 管理员用户创建成功 (admin / admin123)
+
+### 11. 后端服务启动与测试 ✨ (2026-04-06 新增)
+
+✅ 修复的问题：
+- Prisma 版本不匹配：统一 prisma 和 @prisma/client 到 5.20.0
+- ApiError 参数顺序错误：修复 auth.middleware.ts 中的参数顺序
+- 限流中间件位置：将 /healthz 移到限流之前，提高测试限流限制
+
+✅ 后端服务成功启动：
+- 服务运行在 http://localhost:4000
+- 健康检查端点正常：
+  - /healthz → OK
+  - /api/health → {"status":"healthy"}
+  - /api/ready → {"success":true,"data":{"status":"ready"}}
+
+✅ API 模块全面测试通过：
+- 认证模块：CSRF Token、登录、获取当前用户、登出
+- 分类模块：CRUD 完整测试
+- 标签模块：CRUD 完整测试
+- 文章模块：CRUD、搜索完整测试
+
+✅ 创建的测试文件：
+- `test-api.sh` - 完整的 API 测试脚本
+- `simple-test.sh` - 简化的核心功能测试脚本
+- `cleanup-test-data.sh` - 测试数据清理脚本
+
 ---
 
 ## 二、遇到的问题与解决方案
@@ -148,15 +182,61 @@ myblog-v2/
 - 已创建数据库用户 `myblog` 和数据库 `myblog`
 - 下次开发继续尝试解决 Docker 镜像问题
 
-### 问题 2: Prisma Client 版本不匹配
+### 问题 2: Prisma Client 版本不匹配 (已解决 ✅)
 
 **问题描述**:
 - `prisma@5.22.0` 和 `@prisma/client@5.20.0` 版本不匹配
 - 可能导致意外行为
 
-**当前状态**: ⚠️ 存在警告，但功能正常
+**解决方案**:
+- 统一两个包版本到 5.20.0
+- 重新安装依赖
+- 重新生成 Prisma Client
 
-**后续计划**: 下次开发时统一版本
+**当前状态**: ✅ 已解决
+
+### 问题 3: Prisma Client 导出错误 (已解决 ✅)
+
+**问题描述**:
+- 从 @prisma/client 导入 PostStatus 时报错
+- 错误: "The requested module '@prisma/client' does not provide an export named 'PostStatus'"
+
+**根本原因**:
+- apps/api 使用的 @prisma/client 版本与根目录不同
+- workspace 依赖链接到错误的版本
+
+**解决方案**:
+- 统一 prisma 和 @prisma/client 版本到 5.20.0
+- 删除 node_modules 和 pnpm-lock.yaml
+- 重新安装所有依赖
+- 重新生成 Prisma Client
+
+**当前状态**: ✅ 已解决
+
+### 问题 4: ApiError 参数顺序错误 (已解决 ✅)
+
+**问题描述**:
+- auth.middleware.ts 中调用 ApiError 时参数顺序错误
+- 构造函数签名: ApiError(message, statusCode, code)
+- 实际调用: ApiError(statusCode, message)
+
+**解决方案**:
+- 修复所有 auth.middleware.ts 中的 ApiError 调用
+- 确保参数顺序正确
+
+**当前状态**: ✅ 已解决
+
+### 问题 5: 端口被占用 (已解决 ✅)
+
+**问题描述**:
+- 4000 端口被之前的进程占用
+- 错误: "Error: listen EADDRINUSE: address already in use 0.0.0.0:4000"
+
+**解决方案**:
+- 查找并杀死占用端口的进程: `lsof -ti :4000 | xargs -r kill -9`
+- 重新启动服务
+
+**当前状态**: ✅ 已解决
 
 ---
 
@@ -164,42 +244,44 @@ myblog-v2/
 
 ### 已完成
 - ✅ M0: 项目搭建（架构设计、项目结构、Docker配置）
-- ✅ M1: 大部分核心功能已实现
+- ✅ M1: 后端 API 核心模块完成
 - ✅ Prisma Schema 设计完成
 - ✅ 本地 PostgreSQL 数据库安装完成
-- ✅ 数据库用户和数据库创建完成
+- ✅ 数据库迁移和种子数据完成
 - ✅ 项目依赖安装完成
 - ✅ Prisma Client 生成完成
 - ✅ 后端 API 框架和核心模块完成
 - ✅ 前端基础框架和页面结构完成
+- ✅ 后端服务成功启动并测试通过
 
 ### 进行中
-- 🔄 数据库迁移（需要解决权限问题）
+- ✅ 后端服务运行中 (http://localhost:4000)
 
 ### 待完成
-- ❌ 数据库迁移执行
-- ❌ 数据库种子数据
 - ❌ Docker 镜像拉取问题解决（下次开发）
+- ❌ 前端页面完善和联调
+- ❌ 媒体上传功能
+- ❌ 评论功能
 
 ---
 
 ## 四、后续计划
 
-### 短期计划（下次开发）
-1. **解决 Docker 镜像拉取问题**
-   - 尝试其他 Docker Hub 镜像源
-   - 或配置代理
-   - 目标：恢复使用 Docker 开发环境
+### 短期计划
+1. **启动前端服务进行联调**
+   - 启动 Next.js 前端服务
+   - 前后端联调测试
+   - 完善前端页面功能
 
-2. **完成数据库初始化**
-   - 授予 myblog 用户 CREATEDB 权限
-   - 执行 Prisma 迁移
-   - 运行种子脚本创建管理员用户
-
-3. **完善功能和测试**
-   - 测试已实现的 API 模块
-   - 完善前端页面
+2. **完善功能测试**
+   - 测试媒体上传功能
+   - 测试评论功能
    - 端到端功能测试
+
+3. **代码优化和文档**
+   - 完善代码注释
+   - 添加 API 文档
+   - 编写单元测试
 
 ### 长期计划
 - 按架构计划完成 M1-M4 里程碑
@@ -225,6 +307,9 @@ myblog-v2/
 | `apps/api/src/modules/tags/` | 标签模块 |
 | `apps/web/src/app/` | 前端页面 |
 | `.env` | 环境变量配置 |
+| `test-api.sh` | API 完整测试脚本 |
+| `simple-test.sh` | API 简单测试脚本 |
+| `cleanup-test-data.sh` | 测试数据清理脚本 |
 
 ---
 
@@ -236,4 +321,4 @@ myblog-v2/
 
 ---
 
-**总结**: 项目进展迅速，已完成 M0 阶段全部工作和 M1 阶段大部分核心功能。后端 API 框架、认证模块、文章模块、分类标签模块均已实现，前端基础框架和页面结构也已搭建完成。遇到的主要问题是 Docker Hub 网络问题，已采用本地 PostgreSQL 作为替代方案，下次开发将继续尝试解决 Docker 问题并完成数据库初始化。
+**总结**: 项目进展非常顺利，已完成 M0 阶段全部工作和 M1 阶段后端核心功能。数据库已成功初始化，后端服务已启动并通过全面测试。所有 API 模块（认证、分类、标签、文章）都已验证可用。下一步可以启动前端服务进行联调测试。

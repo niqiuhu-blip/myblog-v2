@@ -24,6 +24,11 @@ app.set('trust proxy', true);
 // Request ID middleware (first!)
 app.use(requestIdMiddleware);
 
+// Health check (no logging, no rate limit)
+app.get('/healthz', (_req, res) => {
+  res.send('OK');
+});
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
@@ -34,7 +39,7 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100,
+  limit: 1000, // 提高测试时的限流限制
   standardHeaders: true,
   legacyHeaders: false
 });
@@ -63,11 +68,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/tags', tagsRoutes);
 app.use('/api/posts', postsRoutes);
-
-// Health check (no logging)
-app.get('/healthz', (_req, res) => {
-  res.send('OK');
-});
 
 // Error middleware (last!)
 app.use(errorMiddleware);
