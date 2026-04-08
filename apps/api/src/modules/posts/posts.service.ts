@@ -317,7 +317,9 @@ export class PostsService {
       throw new ApiError(403, '无权限编辑此文章');
     }
 
-    const updateData: any = { ...data };
+    // 构建更新数据，排除 categoryIds 和 tagIds
+    const { categoryIds, tagIds, ...restData } = data;
+    const updateData: any = { ...restData };
 
     // 如果更新了标题且没有指定 slug，重新生成 slug
     if (data.title && !data.slug) {
@@ -347,17 +349,17 @@ export class PostsService {
     }
 
     // 处理分类和标签
-    if (data.categoryIds !== undefined) {
+    if (categoryIds !== undefined) {
       updateData.categories = {
         deleteMany: {},
-        create: data.categoryIds.map((categoryId) => ({ categoryId }))
+        create: categoryIds.map((catId) => ({ categoryId: catId }))
       };
     }
 
-    if (data.tagIds !== undefined) {
+    if (tagIds !== undefined) {
       updateData.tags = {
         deleteMany: {},
-        create: data.tagIds.map((tagId) => ({ tagId }))
+        create: tagIds.map((tId) => ({ tagId: tId }))
       };
     }
 
