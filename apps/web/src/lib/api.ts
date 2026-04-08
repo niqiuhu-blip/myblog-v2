@@ -1,6 +1,6 @@
-import { ApiResponse, PaginatedResponse, SafeUser, LoginCredentials, AuthState, Post, Category, Tag } from '@myblog/shared';
+import { ApiResponse, PaginatedResponse, SafeUser, LoginCredentials, AuthState, Post, Category, Tag, Media } from '@myblog/shared';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = '/api';
 
 let csrfToken: string | null = null;
 
@@ -272,6 +272,90 @@ export const tagsApi = {
 
   async deleteTag(id: string): Promise<void> {
     await apiFetch(`/tags/${id}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// Media API
+export const mediaApi = {
+  async getMedia(options?: {
+    page?: number;
+    limit?: number;
+    uploaderId?: string;
+  }): Promise<PaginatedResponse<Media>> {
+    const params = new URLSearchParams();
+    if (options?.page) params.set('page', options.page.toString());
+    if (options?.limit) params.set('limit', options.limit.toString());
+    if (options?.uploaderId) params.set('uploaderId', options.uploaderId);
+
+    const response = await apiFetch<PaginatedResponse<Media>>(
+      `/media?${params.toString()}`
+    );
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to get media');
+    }
+    return response.data;
+  },
+
+  async getMediaItem(id: string): Promise<Media> {
+    const response = await apiFetch<{ media: Media }>(`/media/${id}`);
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to get media item');
+    }
+    return response.data.media;
+  },
+
+  async uploadMedia(file: File, altText?: string): Promise<Media> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (altText) {
+      formData.append('altText', altText);
+    }
+
+    const url = `${API_BASE_URL}/media/upload`;
+    const token = await getCsrfToken();
+
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'X-CSRF-Token': token
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok && data.error?.includes('CSRF')) {
+      csrfToken = null;
+      return mediaApi.uploadMedia(file, altText);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    if (!data.success || !data.data) {
+      throw new Error(data.error || 'Upload failed');
+    }
+
+    return data.data.media;
+  },
+
+  async updateMedia(id: string, data: { altText?: string }): Promise<Media> {
+    const response = await apiFetch<{ media: Media }>(`/media/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Failed to update media');
+    }
+    return response.data.media;
+  },
+
+  async deleteMedia(id: string): Promise<void> {
+    await apiFetch(`/media/${id}`, {
       method: 'DELETE'
     });
   }

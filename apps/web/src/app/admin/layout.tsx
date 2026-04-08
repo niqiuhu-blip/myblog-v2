@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
 
 export default function AdminLayout({
@@ -11,7 +11,14 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -22,21 +29,15 @@ export default function AdminLayout({
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">请先登录</h1>
-          <Link href="/" className="text-blue-600 hover:underline">
-            返回首页
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const navItems = [
     { label: '仪表盘', href: '/admin' },
-    { label: '文章', href: '/admin/posts' }
+    { label: '文章', href: '/admin/posts' },
+    { label: '分类', href: '/admin/categories' },
+    { label: '标签', href: '/admin/tags' },
+    { label: '媒体', href: '/admin/media' }
   ];
 
   return (

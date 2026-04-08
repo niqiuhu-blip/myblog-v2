@@ -2,10 +2,11 @@
   "name": "@myblog/web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
   },

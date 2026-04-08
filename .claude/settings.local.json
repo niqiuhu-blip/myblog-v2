@@ -3,7 +3,12 @@
     "allow": [
       "Bash(git branch:*)",
       "Bash(chmod:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(netstat -tlnp)",
+      "Bash(pnpm:*)",
+      "Bash(npx prisma:*)",
+      "Bash(node test-prisma.js)",
+      "Bash(curl:*)"
     ]
   }
 }
