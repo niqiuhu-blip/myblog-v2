@@ -8,7 +8,11 @@
       "Bash(pnpm:*)",
       "Bash(npx prisma:*)",
       "Bash(node test-prisma.js)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''   总数: {d[\"\"data\"\"][\"\"total\"\"]}''''\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''   总数: {len\\(d[\"\"data\"\"][\"\"categories\"\"]\\)}''''\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''   总数: {len\\(d[\"\"data\"\"][\"\"tags\"\"]\\)}''''\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''   结果: {d[\"\"data\"\"][\"\"total\"\"]}''''\\)\")"
     ]
   }
 }
